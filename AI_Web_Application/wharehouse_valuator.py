@@ -70,7 +70,7 @@ class Valuation():
         return (NOI / self.marketCap)
 
     def annual_rent(self, rent_sqm):
-        #Annual Rent = Total Lettable Area (sqm) * Market Rent Per SQM
+        #Annual Rent = Total Lettable Area (sqm) * Market Rent Per square metre
         return self.area * rent_sqm
 
     def net_yield(self, yearly_rent, annual_expenses, purchase_price):
