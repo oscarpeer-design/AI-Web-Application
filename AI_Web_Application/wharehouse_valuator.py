@@ -14,14 +14,15 @@ class Valuation():
     #weighted average lease expiry, purchase price
 
     #The user has to enter the market capitalisation rate (for the area), 
-    #the clearance and the lettable area
+    #the clearance, the location and the lettable area
 
-    def __init__(self, marketCap, area, clearance):
+    def __init__(self, marketCap, area, clearance, location):
         self.error_flag = ""
         self.score = 1
         self.marketCap = self.validate_float(marketCap, "marketCap")
         self.area = self.validate_float(area, "area")
         self.clearance = self.validate_float(clearance, "clearance")
+        self.location = location
 
     def adjust_score(self, adjustment):
         new_score = self.score - adjustment
@@ -69,10 +70,53 @@ class Valuation():
         #Property Value = Net Operating Income / Market Capitalisation Rate
         return (NOI / self.marketCap)
 
+    def rent_per_sqm(self, R_base, F_location):
+        F_height = 1 + 0.04 * (self.clearance - 8)
+        # crude size factor
+        if self.area < 5000:
+            F_size = 1.1
+        elif self.area > 30000:
+            F_size = 0.9
+        else:
+            F_size = 1.0
+        F_quality = 1.1   # assume prime
+        return R_base * F_height * F_size * F_location * F_quality
+
     def annual_rent(self, rent_sqm):
-        #Annual Rent = Total Lettable Area (sqm) * Market Rent Per square metre
         return self.area * rent_sqm
 
     def net_yield(self, yearly_rent, annual_expenses, purchase_price):
         #Net Yield(%) = ((Annual Rent - Annual Expenses) / Purchase Price) * 100%
         return ((yearly_rent - annual_expenses) / purchase_price) * 100
+
+    def get_location_params(self):
+        table = {
+            "south_sydney": (180, 1.0), #THE  F_location is wrong
+            "inner_west": (170, 1.1),
+            "eastern_creek": (150, 1.0),
+            "moorebank": (140, 1.0),
+            "outer_west": (110, 1.0),
+            "south_west": (100, 1.0),
+        }
+        params = table.get(self.location)
+        if params is not None:
+            return (140, 1.0)  # fallback
+
+    def valuate_warehouse(self):
+        params = self.get_location_params()
+        R_base = params[0], F_location = params[1]
+
+        rent_sqm = self.rent_per_sqm(R_base, F_location)
+        rent = self.annual_rent(rent_sqm)
+        noi = self.NOI()
+        value = self.property_value()
+        yield_pct = self.net_yield(rent, rent * 0.15, value)
+
+        return {
+            "rent": rent,
+            "NOI": noi,
+            "value": value,
+            "yield": yield_pct,
+            "score": self.score,
+            "errors": self.error_flag
+        }
