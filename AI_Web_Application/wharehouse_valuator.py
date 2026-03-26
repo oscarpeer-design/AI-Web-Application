@@ -66,6 +66,12 @@ class Valuation():
         self.adjust_score(score_unknown)
         return 1
 
+    def NOI(self, yearly_rent, expense_ratio):
+        #Calculates annual net operating income for the warehouse
+        # Get location params if not provided
+        noi = yearly_rent * (1 - expense_ratio)
+        return noi
+
     def property_value(self, NOI):
         #Property Value = Net Operating Income / Market Capitalisation Rate
         return (NOI / self.marketCap)
@@ -91,29 +97,31 @@ class Valuation():
 
     def get_location_params(self):
         table = {
-            "south_sydney": (180, 1.0), #THE  F_location is wrong
-            "inner_west": (170, 1.1),
-            "eastern_creek": (150, 1.0),
-            "moorebank": (140, 1.0),
-            "outer_west": (110, 1.0),
-            "south_west": (100, 1.0),
+            "South Sydney": (180, 1.2, 0.12), # R_base, F_location, expense_ratio
+            "Inner West": (170, 1.1, 0.13),
+            "Eastern Creek": (150, 1.0, 0.15),
+            "Moorebank": (140, 1.0, 0.15),
+            "Outer West": (110, 0.9, 0.18),
+            "South West": (100, 0.85, 0.18),
         }
         params = table.get(self.location)
         if params is not None:
-            return (140, 1.0)  # fallback
+            return (140, 1.0, 0.15)  # fallback
 
     def valuate_warehouse(self):
         params = self.get_location_params()
-        R_base = params[0], F_location = params[1]
+        R_base = params[0]
+        F_location = params[1]
+        expense_ratio = params[2]
 
         rent_sqm = self.rent_per_sqm(R_base, F_location)
-        rent = self.annual_rent(rent_sqm)
-        noi = self.NOI()
-        value = self.property_value()
-        yield_pct = self.net_yield(rent, rent * 0.15, value)
+        yearly_rent = self.annual_rent(rent_sqm)
+        noi = self.NOI(yearly_rent, expense_ratio)
+        value = self.property_value(noi)
+        yield_pct = self.net_yield(yearly_rent, yearly_rent * 0.15, value)
 
         return {
-            "rent": rent,
+            "annual rent": yearly_rent,
             "NOI": noi,
             "value": value,
             "yield": yield_pct,

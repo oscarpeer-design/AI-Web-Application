@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Header, Button, MCapField, AreaField, ClearanceField} from "./components.jsx";
+import { Header, Button, MCapField, AreaField, ClearanceField, LocationLabel, LocationDropDown} from "./components.jsx";
 import "./App.css";
 
 function App() {
@@ -22,15 +22,18 @@ function App() {
                 <AreaField></AreaField>
             </section>
             <section>
-            <ClearanceField></ClearanceField>
+                <ClearanceField></ClearanceField>
             </section>
-
-            <Button></Button>
+            <section>
+                <LocationLabel></LocationLabel>
+                <LocationDropDown></LocationDropDown>
+            </section>
+                <Button></Button>
             <p>{message}</p>
         </div>
     );
 }
 // TO SET CHANGES: go into Powershell and
-// type 'cd "C:\Users\Oscar\Source\repos\AI Web Application\frontend"' 
-// and then 'npm.cmd run build'
+// type: cd "C:\Users\Oscar\Source\repos\AI-Web-Application\frontend"
+// and then: npm.cmd run build
 export default App;
