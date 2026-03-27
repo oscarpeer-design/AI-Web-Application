@@ -2,10 +2,12 @@
 err_invalidinput_marketcap = 'a'
 err_invalidinput_area = 'b'
 err_invalidinput_clearance = 'c'
+err_unrecognised_location = 'd'
 err_unknown = 'j'
 
 #Scoring
 score_invalid_input = 0.2
+score_unrecognised_location = 0.2
 score_unknown = 0.5
 
 class Valuation():
@@ -23,6 +25,7 @@ class Valuation():
         self.area = self.validate_float(area, "area")
         self.clearance = self.validate_float(clearance, "clearance")
         self.location = location
+
 
     def adjust_score(self, adjustment):
         new_score = self.score - adjustment
@@ -97,7 +100,7 @@ class Valuation():
 
     def get_location_params(self):
         table = {
-            "South Sydney": (180, 1.2, 0.12), # R_base, F_location, expense_ratio
+            "South Sydney": (180, 1.2, 0.12), # R_base, F_location, location-based expense_ratio
             "Inner West": (170, 1.1, 0.13),
             "Eastern Creek": (150, 1.0, 0.15),
             "Moorebank": (140, 1.0, 0.15),
@@ -105,7 +108,9 @@ class Valuation():
             "South West": (100, 0.85, 0.18),
         }
         params = table.get(self.location)
-        if params is not None:
+        if params is None:
+            self.error_flag += str(err_unrecognised_location)
+            self.adjust_score(score_unrecognised_location)
             return (140, 1.0, 0.15)  # fallback
 
     def valuate_warehouse(self):
