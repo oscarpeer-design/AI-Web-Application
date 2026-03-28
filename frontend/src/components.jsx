@@ -5,37 +5,15 @@ function Header() {
         </header>
     );
 }
-function MCapField() {
-    return (
-        <input type="text" placeholder = "Enter Market Capitalisation Rate"/>
-    );
-}
-function AreaField() {
-    return (
-        <input type="text" placeholder= "Enter Lettable Area"/>
-    );
-}
-function ClearanceField() {
-    return (
-        <input type="text" placeholder= "Enter Warehouse Clearance"/>
-    );
-}
-function Button() {
-    return (
-        <button>
-            Calculate Finacials
-        </button>
-    );
-}
 
 function LocationLabel() {
     return (
         <label>Choose a location in Sydney</label>
     );
 }
-function LocationDropDown() { 
+function LocationDropDown({value, on_change}) { 
     return (
-        <select>
+        <select value={value} onChange={on_change}>
             <option value="South Sydney">South Sydney</option>
             <option value="Inner West">Inner West</option>
             <option value="Eastern Creek">Eastern Creek</option>
@@ -45,5 +23,10 @@ function LocationDropDown() {
         </select>
     );
 }
+function Button({ onClick }) {
+    return <button onClick={onClick}>
+        Calculate Financials
+    </button>;
+}
 
-export {Header, Button, MCapField, AreaField, ClearanceField, LocationLabel, LocationDropDown};
+export {Header, Button, LocationLabel, LocationDropDown};

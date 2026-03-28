@@ -21,11 +21,11 @@ class Valuation():
     def __init__(self, marketCap, area, clearance, location):
         self.error_flag = ""
         self.score = 1
-        self.marketCap = self.validate_float(marketCap, "marketCap")
+        self.marketCap = self.validate_market_cap(marketCap)
         self.area = self.validate_float(area, "area")
         self.clearance = self.validate_float(clearance, "clearance")
         self.location = location
-
+        self.values = {}
 
     def adjust_score(self, adjustment):
         new_score = self.score - adjustment
@@ -49,6 +49,24 @@ class Valuation():
             #Return default
             return self.manage_input_error(numtype)
     
+    def validate_market_cap(self, s_num):
+        try:
+            val = float(s_num)
+            if val < 0:
+                return self.manage_input_error("marketCap")
+            # Convert percentage inputs
+            if val > 1:
+                val /= 100  # 5 -> 0.05
+            # Sanity bounds for industrial market cap
+            if val < 0.02 or val > 0.12:
+                self.error_flag += str(err_invalidinput_marketcap)
+                self.adjust_score(score_invalid_input)
+                return 0.05  # fallback
+            return val
+
+        except:
+            return self.manage_input_error("marketCap")
+
     def manage_input_error(self, numtype):
         if numtype == "marketCap":
            self.error_flag += str(err_invalidinput_marketcap)
@@ -76,7 +94,9 @@ class Valuation():
         return noi
 
     def property_value(self, NOI):
-        #Property Value = Net Operating Income / Market Capitalisation Rate
+        #value = NOI / market capitalisation
+        if self.marketCap == 0:
+            return 0
         return (NOI / self.marketCap)
 
     def rent_per_sqm(self, R_base, F_location):
@@ -96,6 +116,8 @@ class Valuation():
 
     def net_yield(self, yearly_rent, annual_expenses, purchase_price):
         #Net Yield(%) = ((Annual Rent - Annual Expenses) / Purchase Price) * 100%
+        if purchase_price == 0:
+            return 0
         return ((yearly_rent - annual_expenses) / purchase_price) * 100
 
     def get_location_params(self):
@@ -112,6 +134,21 @@ class Valuation():
             self.error_flag += str(err_unrecognised_location)
             self.adjust_score(score_unrecognised_location)
             return (140, 1.0, 0.15)  # fallback
+        return params
+
+    def calculate_values(self, yearly_rent, noi, value, yield_pct):
+        self.values = {}
+        if yearly_rent is not None:
+            self.values.update({"annual rent": yearly_rent})
+        if noi is not None:
+            self.values.update({"NOI": noi})
+        if value is not None:
+            self.values.update({"value": value})
+        if yield_pct is not None:
+            self.values.update({"yield": yield_pct})
+        self.values.update({"score": str(self.score)})
+        if self.error_flag != "":
+            self.values.update({"errors": self.error_flag})
 
     def valuate_warehouse(self):
         params = self.get_location_params()
@@ -123,13 +160,9 @@ class Valuation():
         yearly_rent = self.annual_rent(rent_sqm)
         noi = self.NOI(yearly_rent, expense_ratio)
         value = self.property_value(noi)
-        yield_pct = self.net_yield(yearly_rent, yearly_rent * 0.15, value)
+        yield_pct = self.net_yield(yearly_rent, yearly_rent * expense_ratio, value)
 
-        return {
-            "annual rent": yearly_rent,
-            "NOI": noi,
-            "value": value,
-            "yield": yield_pct,
-            "score": self.score,
-            "errors": self.error_flag
-        }
+        self.calculate_values(yearly_rent, noi, value, yield_pct)
+
+    def return_values(self):
+        return self.values
