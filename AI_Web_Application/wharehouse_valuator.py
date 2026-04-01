@@ -137,9 +137,8 @@ class Valuation():
         return params
 
     def calculate_values(self, yearly_rent, noi, value, yield_pct):
-        self.values = {}
         if yearly_rent is not None:
-            self.values.update({"annual rent": yearly_rent})
+            self.values.update({"annual_rent": yearly_rent})
         if noi is not None:
             self.values.update({"NOI": noi})
         if value is not None:

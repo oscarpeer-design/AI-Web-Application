@@ -3,7 +3,7 @@ import { Header, Button, LocationLabel, LocationDropDown } from "./components.js
 import "./App.css";
 
 function App() {
-    const [message, setMessage] = useState("");
+    const [result, setResult] = useState(null);
 
     const [marketCap, setMarketCap] = useState("");
     const [area, setArea] = useState("");
@@ -13,7 +13,7 @@ function App() {
     useEffect(() => {
         fetch("/api/data")
             .then(res => res.json())
-            .then(data => setMessage(data.message));
+            .then(data => setMessage(data.message)); //debugging output
     }, []);
 
     const handleSubmit = () => {
@@ -31,7 +31,8 @@ function App() {
         })
             .then(res => res.json())
             .then(data => {
-                setMessage(JSON.stringify(data));
+                //setMessage(JSON.stringify(data)); //debugging output
+                setResult(data);
             })
             .catch(err => console.error(err));
     };
@@ -77,7 +78,29 @@ function App() {
 
             <Button onClick={handleSubmit} />
 
-            <p>{message}</p>
+            {/*<p>{message}</p>* debugging output */} 
+
+            {result && (
+                <div className="results">
+                    <h2>Valuation Results</h2>
+
+                    <p><strong>Annual Rent:</strong> ${ (result["annual_rent"]?? 0).toLocaleString()}</p>
+
+                    <p><strong>NOI:</strong> ${ (result["NOI"]?? 0).toLocaleString()}</p>
+
+                    <p><strong>Property Value:</strong> ${ (result["value"]?? 0).toLocaleString()}</p>
+
+                    <p><strong>Net Yield:</strong> { (result["yield"]?? 0).toFixed(2)}%</p>
+
+                    <p><strong>Confidence Score:</strong> { (result["score"]?? 0)}</p>
+
+                    {result["errors"] && (
+                        <p style={{ color: "red" }}>
+                            <strong>Errors:</strong> { result["errors"]}
+                        </p>
+                    )}
+                </div>
+            )}
         </div>
     );
 }
