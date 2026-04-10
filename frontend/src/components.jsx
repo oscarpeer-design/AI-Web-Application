@@ -1,7 +1,7 @@
 function Header() {
     return (
         <header>
-            <h1>AI Web Application</h1>
+            <h1>Warehouse Valuation Application</h1>
         </header>
     );
 }
@@ -11,15 +11,26 @@ function LocationLabel() {
         <label>Choose a location in Sydney</label>
     );
 }
-function LocationDropDown({value, on_change}) { 
+function LocationDropDown({ value, onChange }) {
+    const suburbMap = {
+        "South Sydney": ["Alexandria", "Botany", "Mascot", "Banksmeadow"],
+        "Inner West": ["Marrickville", "St Peters", "Tempe"],
+        "Central West": ["Eastern Creek", "Erskine Park", "Wetherill Park", "Huntingwood"],
+        "South West": ["Moorebank", "Liverpool", "Prestons", "Ingleburn"],
+        "Outer West": ["Penrith", "St Marys", "Mount Druitt"]
+    };
+
     return (
-        <select value={value} onChange={on_change}>
-            <option value="South Sydney">South Sydney</option>
-            <option value="Inner West">Inner West</option>
-            <option value="Eastern Creek">Eastern Creek</option>
-            <option value="Moorebank">Moorebank</option>
-            <option value="Outer West">Outer West</option>
-            <option value="South West">South West</option>
+        <select value={value} onChange={onChange}>
+            {Object.entries(suburbMap).map(([region, suburbs]) => (
+                <optgroup key={region} label={region}>
+                    {suburbs.map(suburb => (
+                        <option key={suburb} value={suburb}>
+                            {suburb}
+                        </option>
+                    ))}
+                </optgroup>
+            ))}
         </select>
     );
 }

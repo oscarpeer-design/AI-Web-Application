@@ -8,7 +8,7 @@ function App() {
     const [marketCap, setMarketCap] = useState("");
     const [area, setArea] = useState("");
     const [clearance, setClearance] = useState("");
-    const [location, setLocation] = useState("South Sydney");
+    const [location, setLocation] = useState("Alexandria");
 
     useEffect(() => {
         fetch("/api/data")
@@ -72,7 +72,7 @@ function App() {
                 <LocationLabel />
                 <LocationDropDown
                     value={location}
-                    on_change={e => setLocation(e.target.value)}
+                    onChange={e => setLocation(e.target.value)}
                 />
             </section>
 

@@ -6,9 +6,9 @@ err_unrecognised_location = 'd'
 err_unknown = 'j'
 
 #Scoring
-score_invalid_input = 0.2
-score_unrecognised_location = 0.2
-score_unknown = 0.5
+score_invalid_input = 20
+score_unrecognised_location = 20
+score_unknown = 50
 
 class Valuation():
     #Valuates an industrial warehouse property based on Net Operating Income, 
@@ -20,7 +20,7 @@ class Valuation():
 
     def __init__(self, marketCap, area, clearance, location):
         self.error_flag = ""
-        self.score = 1
+        self.score = 100
         self.marketCap = self.validate_market_cap(marketCap)
         self.area = self.validate_float(area, "area")
         self.clearance = self.validate_float(clearance, "clearance")
@@ -58,7 +58,7 @@ class Valuation():
             if val > 1:
                 val /= 100  # 5 -> 0.05
             # Sanity bounds for industrial market cap
-            if val < 0.02 or val > 0.12:
+            if val < 0.01 or val > 0.15:
                 self.error_flag += str(err_invalidinput_marketcap)
                 self.adjust_score(score_invalid_input)
                 return 0.05  # fallback
@@ -119,22 +119,63 @@ class Valuation():
         if purchase_price == 0:
             return 0
         return ((yearly_rent - annual_expenses) / purchase_price) * 100
-
+    
     def get_location_params(self):
-        table = {
-            "South Sydney": (180, 1.2, 0.12), # R_base, F_location, location-based expense_ratio
+        # Base parameters by industrial precinct
+        precincts = {
+            "South Sydney": (180, 1.2, 0.12),
             "Inner West": (170, 1.1, 0.13),
-            "Eastern Creek": (150, 1.0, 0.15),
-            "Moorebank": (140, 1.0, 0.15),
+            "Central West": (150, 1.0, 0.15),
+            "South West": (130, 0.95, 0.16),
             "Outer West": (110, 0.9, 0.18),
-            "South West": (100, 0.85, 0.18),
         }
-        params = table.get(self.location)
-        if params is None:
-            self.error_flag += str(err_unrecognised_location)
-            self.adjust_score(score_unrecognised_location)
-            return (140, 1.0, 0.15)  # fallback
-        return params
+        # Map suburbs to precincts
+        suburb_map = {
+            "Alexandria": "South Sydney",
+            "Botany": "South Sydney",
+            "Mascot": "South Sydney",
+            "Banksmeadow": "South Sydney",
+            "Marrickville": "Inner West",
+            "St Peters": "Inner West",
+            "Tempe": "Inner West",
+            "Eastern Creek": "Central West",
+            "Erskine Park": "Central West",
+            "Wetherill Park": "Central West",
+            "Huntingwood": "Central West",
+            "Moorebank": "South West",
+            "Liverpool": "South West",
+            "Prestons": "South West",
+            "Ingleburn": "South West",
+            "Penrith": "Outer West",
+            "St Marys": "Outer West",
+            "Mount Druitt": "Outer West",
+        }
+        # Suburb-specific overrides
+        suburb_params = {
+            "Alexandria": (200, 1.3, 0.11),
+            "Mascot": (190, 1.25, 0.11),
+            "Botany": (185, 1.2, 0.12),
+            "Wetherill Park": (155, 1.05, 0.14),
+            "Eastern Creek": (160, 1.05, 0.14),
+            "Moorebank": (145, 1.0, 0.15),
+            "Prestons": (135, 0.95, 0.16),
+            "Penrith": (115, 0.9, 0.18),
+        }
+        location = self.location
+        # STEP 1: Suburb override (highest priority)
+        if location in suburb_params:
+            return suburb_params[location]
+        # STEP 2: Suburb to precinct
+        if location in suburb_map:
+            precinct = suburb_map[location]
+            return precincts[precinct]
+        # STEP 3: Direct precinct input
+        if location in precincts:
+            return precincts[location]
+        # STEP 4: Unknown location
+        self.error_flag += str(err_unrecognised_location)
+        self.adjust_score(score_unrecognised_location)
+        return (140, 1.0, 0.15)
 
     def calculate_values(self, yearly_rent, noi, value, yield_pct):
         if yearly_rent is not None:
