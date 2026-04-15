@@ -3,11 +3,13 @@ err_invalidinput_marketcap = 'a'
 err_invalidinput_area = 'b'
 err_invalidinput_clearance = 'c'
 err_unrecognised_location = 'd'
+err_unusual_marketcap = 'e'
 err_unknown = 'j'
 
 #Scoring
 score_invalid_input = 20
 score_unrecognised_location = 20
+score_unusual_marketcap = 10
 score_unknown = 50
 
 class Valuation():
@@ -36,7 +38,7 @@ class Valuation():
         #Checks if number is a number
         try:
             val = float(s_num)
-            if val < 0:
+            if val <= 0:
                return self.manage_input_error(numtype)
             if percentage == True:
                 if val > 100:
@@ -52,16 +54,21 @@ class Valuation():
     def validate_market_cap(self, s_num):
         try:
             val = float(s_num)
-            if val < 0:
+            if val <= 0:
                 return self.manage_input_error("marketCap")
             # Convert percentage inputs
             if val > 1:
                 val /= 100  # 5 -> 0.05
             # Sanity bounds for industrial market cap
             if val < 0.01 or val > 0.15:
-                self.error_flag += str(err_invalidinput_marketcap)
-                self.adjust_score(score_invalid_input)
-                return 0.05  # fallback
+                if val > 1: #Number is not a percentage
+                    self.error_flag += str(err_invalidinput_marketcap)
+                    self.adjust_score(score_invalid_input)
+                    return 0.05  # fallback
+                else:
+                    #Number is outside normal 
+                    self.error_flag += str(err_unusual_marketcap)
+                    self.adjust_score(score_unusual_marketcap)
             return val
 
         except:
@@ -97,7 +104,10 @@ class Valuation():
         #value = NOI / market capitalisation
         if self.marketCap == 0:
             return 0
-        return (NOI / self.marketCap)
+        value = NOI / self.marketCap
+        undervaluation_factor = 0.95
+        value *= undervaluation_factor #Keep fact that sale will most often be less than fair market value
+        return value
 
     def rent_per_sqm(self, R_base, F_location):
         F_height = 1 + 0.04 * (self.clearance - 8)

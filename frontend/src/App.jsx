@@ -13,8 +13,16 @@ function App() {
     useEffect(() => {
         fetch("/api/data")
             .then(res => res.json())
-            .then(data => setMessage(data.message)); //debugging output
+            .then(data => console.log(data)); //debugging output
     }, []);
+
+    const errorMap = {
+        a: "Market Cap Rate invalid",
+        b: "Lettable Area invalid",
+        c: "Clearance invalid",
+        d: "Location not recognised",
+        e: "Market Cap Rate is outside conventional range (between 2% and 15%)"
+    };
 
     const handleSubmit = () => {
         fetch("/api/valuate", {
@@ -99,6 +107,14 @@ function App() {
                             <strong>Errors:</strong> { result["errors"]}
                         </p>
                     )}
+
+                    {result.errors && (
+                        <div className="error-box">
+                            {result.errors.split("").map(e => (
+                                <div key={e}> {errorMap[e]}</div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             )}
         </div>
@@ -110,3 +126,4 @@ export default App;
 // TO SET CHANGES: go into Powershell and
 // type: cd "C:\Users\Oscar\Source\repos\AI-Web-Application\frontend"
 // and then: npm.cmd run build
+

@@ -1,0 +1,126 @@
+Test data
+{
+  "marketCap": 5,
+  "area": 10000,
+  "clearance": 10,
+  "location": "Wetherill Park"
+}
+Expected results:
+Rent/sqm ≈ 150–170
+Annual Rent ≈ $1.5M – $1.7M
+NOI ≈ $1.25M – $1.45M
+Value ≈ $25M – $30M
+Yield ≈ ~5%
+Score = 1
+
+{
+  "marketCap": 4.5,
+  "area": 8000,
+  "clearance": 12,
+  "location": "Alexandria"
+}
+
+Expected results:
+
+High rent due to premium:
+Rent/sqm ≈ 220–260
+Annual Rent ≈ $1.7M – $2.1M
+NOI ≈ $1.5M – $1.9M
+Value ≈ $35M – $45M
+Yield ≈ ~4.5%
+
+{
+  "marketCap": 5.5,
+  "area": 40000,
+  "clearance": 13,
+  "location": "Eastern Creek"
+}
+
+Expected results:
+
+Size discount applied
+Rent/sqm ≈ 140–160
+Annual Rent ≈ $5.5M – $6.5M
+NOI ≈ $4.5M – $5.5M
+Value ≈ $80M – $100M
+
+{
+  "marketCap": 5,
+  "area": 3000,
+  "clearance": 9,
+  "location": "Marrickville"
+}
+
+Expected results:
+
+Small size premium (F_size = 1.1)
+Rent slightly higher
+Annual Rent ≈ $550k – $700k
+Value ≈ $10M – $14M
+
+{
+  "marketCap": 5,
+  "area": 15000,
+  "clearance": 16,
+  "location": "Moorebank"
+}
+
+Expected results:
+
+F_height ≈ 1 + 0.04*(16-8) = 1.32
+Annual Rent noticeably higher
+Value significantly increased
+
+{
+  "marketCap": "abc",
+  "area": 10000,
+  "clearance": 12,
+  "location": "Botany"
+}
+
+Expected results:
+
+marketCap fallback → 0.05
+Error flag includes "a"
+Score reduced (~0.8)
+
+{
+  "marketCap": 5,
+  "area": -100,
+  "clearance": 12,
+  "location": "Botany"
+}
+
+Expected results:
+
+area fallback → 12800
+Error "b"
+Score reduced
+
+{
+  "marketCap": 5,
+  "area": 10000,
+  "clearance": 12,
+  "location": "Randomville"
+}
+
+Expected results:
+
+(140, 1.0, 0.15)
+Error "d"
+Score reduced
+
+{
+  "marketCap": 0,
+  "area": 0,
+  "clearance": 0,
+  "location": "Penrith"
+}
+
+Expected results:
+
+All fallbacks triggered
+Very low rent
+Value ≈ small but non-zero
+Multiple error flags
+Score significantly reduced
